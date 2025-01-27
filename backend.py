@@ -195,16 +195,26 @@ def combine_tables(conn, table_names):
     if len(valid_tables) < 2:
         print('Invalid table names selected.')
         return []
+    
+    # Create a query for each table that includes the source table name
     queries = [f"SELECT *, '{name}' AS source_table FROM {name}" for name in valid_tables]
     combined_query = ' UNION ALL '.join(queries)
+    
     try:
         cursor = conn.execute(combined_query)
         combined_data = cursor.fetchall()
         combined_data.sort(key=lambda x: x[1])  # Assuming the second column is 'name'
+        # Output the result to the console
+        print("Combined Tables Result:")
+        for row in combined_data:
+            print(row)
+
         return combined_data
     except sqlite3.Error as e:
         print(f'Error combining tables: {e}')
         return []
+
+
 
 
 # Search tables
@@ -229,6 +239,9 @@ def search_tables(conn, search_term, table_names, search_type='name'):
             combined_results.extend(cursor.fetchall())
         except sqlite3.Error as e:
             print(f'Error searching table {table_name}: {e}')
+    print("Search Tables Result:")
+    for row in combined_results:
+        print(row)
 
     return combined_results
 

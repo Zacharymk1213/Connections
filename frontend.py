@@ -159,12 +159,15 @@ class TableDialog(QDialog):
         self.central_widget = QWidget(self)
         layout = QVBoxLayout(self.central_widget)
 
+        # Add QLabel for entry count
+        self.entry_count_label = QLabel()
+        layout.addWidget(self.entry_count_label)
+
         self.entries_table = QTableWidget()
-        self.entries_table.setColumnCount(12)  # Adjusted for new columns
+        self.entries_table.setColumnCount(12)
         self.entries_table.setHorizontalHeaderLabels(["Name", "Phone", "Email", "WhatsApp", "Signal", "Telegram", "Facebook", "LinkedIn", "Relationship", "Notes", "Edit", "Delete"])
         self.entries_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        # Set resize mode for each column to stretch
         for i in range(self.entries_table.columnCount()):
             self.entries_table.horizontalHeader().setSectionResizeMode(i, QHeaderView.Stretch)
 
@@ -183,20 +186,22 @@ class TableDialog(QDialog):
     def load_entries(self):
         self.entries_table.setRowCount(0)
         entries = db_ops.fetch_entries(self.conn, self.table_name)
+        
+        # Update entry count label
+        self.entry_count_label.setText(f"Entry Count: {len(entries)}")
+        
         for entry in entries:
             row_position = self.entries_table.rowCount()
             self.entries_table.insertRow(row_position)
-            for i, value in enumerate(entry[1:-1]):  # Skip ID and last_modified
+            for i, value in enumerate(entry[1:-1]):
                 item = QTableWidgetItem(str(value))
-                item.setFlags(item.flags() & ~Qt.ItemIsEditable)  # Make item non-editable
+                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
                 self.entries_table.setItem(row_position, i, item)
 
-            # Add Edit button
             edit_button = QPushButton("Edit")
             edit_button.clicked.connect(lambda _, e=entry: self.edit_entry(e))
             self.entries_table.setCellWidget(row_position, 10, edit_button)
 
-            # Add Delete button
             delete_button = QPushButton("Delete")
             delete_button.clicked.connect(lambda _, e=entry: self.delete_entry(e))
             self.entries_table.setCellWidget(row_position, 11, delete_button)
@@ -301,7 +306,6 @@ class EntryDialog(QDialog):
             db_ops.add_entry(self.conn, self.table_name, entry_data)
 
         self.accept()
-
 class CombineTablesDialog(QDialog):
     def __init__(self, conn, parent=None):
         super().__init__(parent)
@@ -313,6 +317,9 @@ class CombineTablesDialog(QDialog):
     def initUI(self):
         self.layout = QVBoxLayout(self)
 
+        self.row_count_label = QLabel("Number of Entries returned: 0")
+        self.layout.addWidget(self.row_count_label)
+
         self.tables_list = QTableWidget()
         self.tables_list.setColumnCount(2)
         self.tables_list.setHorizontalHeaderLabels(["Select", "Table Name"])
@@ -320,6 +327,9 @@ class CombineTablesDialog(QDialog):
         self.tables_list.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.tables_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.layout.addWidget(self.tables_list)
+
+        # Set resize mode for each column to stretch
+        self.tables_list.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
         self.load_tables()
 
@@ -349,7 +359,6 @@ class CombineTablesDialog(QDialog):
         self.results_table.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.results_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.layout.addWidget(self.results_table)
-
 
     def load_tables(self):
         self.tables_list.setRowCount(0)
@@ -383,6 +392,10 @@ class CombineTablesDialog(QDialog):
         combined_data = db_ops.combine_tables(self.conn, selected_tables)
         self.display_combined_data(combined_data)
 
+        # Update the row count label
+        row_count = len(combined_data)
+        self.row_count_label.setText(f"Number of Entries returned: {row_count}")
+
     def display_combined_data(self, combined_data):
         self.results_table.setRowCount(0)
 
@@ -399,8 +412,6 @@ class CombineTablesDialog(QDialog):
                 item = QTableWidgetItem(str(value))
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)  # Make item non-editable
                 self.results_table.setItem(row_position, display_index, item)
-
-
 
 class SearchTablesDialog(QDialog):
     def __init__(self, conn, parent=None):
@@ -429,6 +440,9 @@ class SearchTablesDialog(QDialog):
         self.tables_list.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.tables_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.layout.addWidget(self.tables_list)
+
+        # Set resize mode for each column to stretch
+        self.tables_list.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
         self.load_tables()
 
@@ -511,7 +525,6 @@ class SearchTablesDialog(QDialog):
                 item = QTableWidgetItem(str(value))
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)  # Make item non-editable
                 self.results_table.setItem(row_position, display_index, item)
-
 
 
 

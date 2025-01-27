@@ -150,22 +150,38 @@ class TableDialog(QDialog):
         self.initUI()
 
     def initUI(self):
-        self.central_widget = QWidget()
-        self.setLayout(QVBoxLayout(self.central_widget))
+        self.central_widget = QWidget(self)
+        layout = QVBoxLayout(self.central_widget)
 
         self.entries_table = QTableWidget()
         self.entries_table.setColumnCount(9)
         self.entries_table.setHorizontalHeaderLabels(["Name", "Phone", "Email", "WhatsApp", "Signal", "Telegram", "Relationship", "Notes", "Actions"])
         self.entries_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.entries_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.entries_table.setWordWrap(True)  # Enable word wrapping
-        self.layout().addWidget(self.entries_table)
+
+        # Set resize mode for each column
+        self.entries_table.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        self.entries_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)  # Name
+        self.entries_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)  # Phone
+        self.entries_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)  # Email
+        self.entries_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)  # WhatsApp
+        self.entries_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)  # Signal
+        self.entries_table.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeToContents)  # Telegram
+        self.entries_table.horizontalHeader().setSectionResizeMode(6, QHeaderView.ResizeToContents)  # Relationship
+        self.entries_table.horizontalHeader().setSectionResizeMode(7, QHeaderView.Stretch)           # Notes
+        self.entries_table.horizontalHeader().setSectionResizeMode(8, QHeaderView.ResizeToContents)  # Actions
+
+        self.entries_table.setWordWrap(True)
+        self.entries_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        layout.addWidget(self.entries_table)
 
         self.load_entries()
 
         self.add_entry_button = QPushButton("Add Entry")
         self.add_entry_button.clicked.connect(self.add_entry)
-        self.layout().addWidget(self.add_entry_button)
+        layout.addWidget(self.add_entry_button)
+
+        self.setLayout(layout)
+
 
     def load_entries(self):
         self.entries_table.setRowCount(0)
@@ -288,6 +304,8 @@ class CombineTablesDialog(QDialog):
         self.tables_list.setColumnCount(2)
         self.tables_list.setHorizontalHeaderLabels(["Select", "Table Name"])
         self.tables_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.tables_list.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.tables_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.layout.addWidget(self.tables_list)
 
         self.load_tables()
@@ -308,8 +326,24 @@ class CombineTablesDialog(QDialog):
         self.results_table.setColumnCount(10)
         self.results_table.setHorizontalHeaderLabels(["Name", "Phone", "Email", "WhatsApp", "Signal", "Telegram", "Relationship", "Notes", "Last Modified", "Source Table"])
         self.results_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.results_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.results_table.setWordWrap(True)  # Enable word wrapping
+
+        # Set resize mode for each column
+        self.results_table.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        self.results_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)  # Name
+        self.results_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)  # Phone
+        self.results_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)  # Email
+        self.results_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)  # WhatsApp
+        self.results_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)  # Signal
+        self.results_table.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeToContents)  # Telegram
+        self.results_table.horizontalHeader().setSectionResizeMode(6, QHeaderView.ResizeToContents)  # Relationship
+        self.results_table.horizontalHeader().setSectionResizeMode(7, QHeaderView.Stretch)           # Notes
+        self.results_table.horizontalHeader().setSectionResizeMode(8, QHeaderView.ResizeToContents)  # Last Modified
+        self.results_table.horizontalHeader().setSectionResizeMode(9, QHeaderView.ResizeToContents)  # Source Table
+
+        self.results_table.setWordWrap(True)
+        self.results_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.results_table.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.results_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.layout.addWidget(self.results_table)
 
 
@@ -363,7 +397,6 @@ class CombineTablesDialog(QDialog):
             self.results_table.setItem(row_position, 9, QTableWidgetItem(str(entry[11]))) # Source Table
 
 
-
 class SearchTablesDialog(QDialog):
     def __init__(self, conn, parent=None):
         super().__init__(parent)
@@ -383,6 +416,8 @@ class SearchTablesDialog(QDialog):
         self.tables_list.setColumnCount(2)
         self.tables_list.setHorizontalHeaderLabels(["Select", "Table Name"])
         self.tables_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.tables_list.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.tables_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.layout.addWidget(self.tables_list)
 
         self.load_tables()
@@ -403,9 +438,27 @@ class SearchTablesDialog(QDialog):
         self.results_table.setColumnCount(10)
         self.results_table.setHorizontalHeaderLabels(["Name", "Phone", "Email", "WhatsApp", "Signal", "Telegram", "Relationship", "Notes", "Last Modified", "Source Table"])
         self.results_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.results_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.results_table.setWordWrap(True)  # Enable word wrapping
+
+        # Set resize mode for each column
+        self.results_table.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        self.results_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)  # Name
+        self.results_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)  # Phone
+        self.results_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)  # Email
+        self.results_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)  # WhatsApp
+        self.results_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)  # Signal
+        self.results_table.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeToContents)  # Telegram
+        self.results_table.horizontalHeader().setSectionResizeMode(6, QHeaderView.ResizeToContents)  # Relationship
+        self.results_table.horizontalHeader().setSectionResizeMode(7, QHeaderView.Stretch)           # Notes
+        self.results_table.horizontalHeader().setSectionResizeMode(8, QHeaderView.ResizeToContents)  # Last Modified
+        self.results_table.horizontalHeader().setSectionResizeMode(9, QHeaderView.ResizeToContents)  # Source Table
+
+        self.results_table.setWordWrap(True)
+        self.results_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.results_table.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.results_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.layout.addWidget(self.results_table)
+
+
 
 
     def load_tables(self):

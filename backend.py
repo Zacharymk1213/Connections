@@ -62,6 +62,7 @@ def create_table(conn, table_name):
     if not is_valid_table_name(table_name):
         print('Invalid table name.')
         return False
+
     create_table_sql = f'''
     CREATE TABLE IF NOT EXISTS {table_name} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -71,6 +72,8 @@ def create_table(conn, table_name):
         whatsapp_phone TEXT,
         signal_phone TEXT,
         telegram_handle TEXT,
+        facebook TEXT,  -- New column
+        linkedin TEXT,  -- New column
         relationship TEXT,
         other_notes TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -80,11 +83,12 @@ def create_table(conn, table_name):
     try:
         with conn:
             conn.execute(create_table_sql)
-            print(f'Table "{table_name}" created.')
-            return True
+        print(f'Table "{table_name}" created.')
+        return True
     except sqlite3.Error as e:
         print(f'Error creating table: {e}')
         return False
+
 
 # Fetch all tables
 def fetch_all_tables(conn):
@@ -101,18 +105,20 @@ def add_entry(conn, table_name, entry_data):
     if not is_valid_table_name(table_name):
         print('Invalid table name.')
         return False
+
     insert_sql = f'''
-    INSERT INTO {table_name} (name, phone_contact, email, whatsapp_phone, signal_phone, telegram_handle, relationship, other_notes)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO {table_name} (name, phone_contact, email, whatsapp_phone, signal_phone, telegram_handle, facebook, linkedin, relationship, other_notes)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     '''
     try:
         with conn:
             conn.execute(insert_sql, entry_data)
-            print(f'Entry added to table "{table_name}".')
-            return True
+        print(f'Entry added to table "{table_name}".')
+        return True
     except sqlite3.Error as e:
         print(f'Error inserting entry: {e}')
         return False
+
 
 # Fetch entries from a specific table
 def fetch_entries(conn, table_name):
@@ -132,19 +138,22 @@ def edit_entry(conn, table_name, entry_id, entry_data):
     if not is_valid_table_name(table_name):
         print('Invalid table name.')
         return False
+
     update_sql = f'''
     UPDATE {table_name}
-    SET name = ?, phone_contact = ?, email = ?, whatsapp_phone = ?, signal_phone = ?, telegram_handle = ?, relationship = ?, other_notes = ?, last_modified = CURRENT_TIMESTAMP
+    SET name = ?, phone_contact = ?, email = ?, whatsapp_phone = ?, signal_phone = ?, telegram_handle = ?, facebook = ?, linkedin = ?, relationship = ?, other_notes = ?, last_modified = CURRENT_TIMESTAMP
     WHERE id = ?
     '''
     try:
         with conn:
             conn.execute(update_sql, (*entry_data, entry_id))
-            print(f'Entry {entry_id} updated in table "{table_name}".')
-            return True
+        print(f'Entry {entry_id} updated in table "{table_name}".')
+        return True
     except sqlite3.Error as e:
         print(f'Error updating entry: {e}')
         return False
+
+
 
 # Delete an entry from a specific table
 def delete_entry(conn, table_name, entry_id):

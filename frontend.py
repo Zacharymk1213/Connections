@@ -3,6 +3,37 @@ from PyQt5.QtWidgets import QHBoxLayout,QHeaderView,QSizePolicy, QApplication, Q
 from PyQt5.QtCore import Qt
 import backend as db_ops
 
+
+def wrap_text_with_hyphen(text, max_length):
+    words = text.split()
+    wrapped_lines = []
+    current_line = ""
+
+    for word in words:
+        if len(current_line) + len(word) + 1 > max_length:  # +1 for the space or hyphen
+            if len(word) > max_length:
+                # Split the word with hyphens if it's longer than max_length
+                while len(word) > max_length:
+                    wrapped_lines.append(word[:max_length-1] + "-")
+                    word = word[max_length-1:]
+            wrapped_lines.append(current_line)
+            current_line = word
+        else:
+            if current_line:
+                current_line += " "
+            current_line += word
+
+    if current_line:
+        wrapped_lines.append(current_line)
+
+    return "\n".join(wrapped_lines)
+
+# Example usage
+text = "This is a verylongwordthatneedstobebroken"
+max_length = 10
+wrapped_text = wrap_text_with_hyphen(text, max_length)
+print(wrapped_text)
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -154,22 +185,13 @@ class TableDialog(QDialog):
         layout = QVBoxLayout(self.central_widget)
 
         self.entries_table = QTableWidget()
-        self.entries_table.setColumnCount(10)  # Adjusted for separate edit and delete columns
-        self.entries_table.setHorizontalHeaderLabels(["Name", "Phone", "Email", "WhatsApp", "Signal", "Telegram", "Relationship", "Notes", "Edit", "Delete"])
+        self.entries_table.setColumnCount(12)  # Adjusted for new columns
+        self.entries_table.setHorizontalHeaderLabels(["Name", "Phone", "Email", "WhatsApp", "Signal", "Telegram", "Facebook", "LinkedIn", "Relationship", "Notes", "Edit", "Delete"])
         self.entries_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        # Set resize mode for each column
-        self.entries_table.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
-        self.entries_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)  # Name
-        self.entries_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)  # Phone
-        self.entries_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)  # Email
-        self.entries_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)  # WhatsApp
-        self.entries_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)  # Signal
-        self.entries_table.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeToContents)  # Telegram
-        self.entries_table.horizontalHeader().setSectionResizeMode(6, QHeaderView.ResizeToContents)  # Relationship
-        self.entries_table.horizontalHeader().setSectionResizeMode(7, QHeaderView.Stretch)           # Notes
-        self.entries_table.horizontalHeader().setSectionResizeMode(8, QHeaderView.ResizeToContents)  # Edit
-        self.entries_table.horizontalHeader().setSectionResizeMode(9, QHeaderView.ResizeToContents)  # Delete
+        # Set resize mode for each column to stretch
+        for i in range(self.entries_table.columnCount()):
+            self.entries_table.horizontalHeader().setSectionResizeMode(i, QHeaderView.Stretch)
 
         self.entries_table.setWordWrap(True)
         self.entries_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
@@ -197,12 +219,12 @@ class TableDialog(QDialog):
             # Add Edit button
             edit_button = QPushButton("Edit")
             edit_button.clicked.connect(lambda _, e=entry: self.edit_entry(e))
-            self.entries_table.setCellWidget(row_position, 8, edit_button)
+            self.entries_table.setCellWidget(row_position, 10, edit_button)
 
             # Add Delete button
             delete_button = QPushButton("Delete")
             delete_button.clicked.connect(lambda _, e=entry: self.delete_entry(e))
-            self.entries_table.setCellWidget(row_position, 9, delete_button)
+            self.entries_table.setCellWidget(row_position, 11, delete_button)
 
     def delete_entry(self, entry):
         reply = QMessageBox.question(
@@ -252,6 +274,8 @@ class EntryDialog(QDialog):
         self.whatsapp_input = QLineEdit()
         self.signal_input = QLineEdit()
         self.telegram_input = QLineEdit()
+        self.facebook_input = QLineEdit()  # New input
+        self.linkedin_input = QLineEdit()  # New input
         self.relationship_input = QLineEdit()
         self.notes_input = QLineEdit()
 
@@ -261,6 +285,8 @@ class EntryDialog(QDialog):
         self.layout().addRow("WhatsApp:", self.whatsapp_input)
         self.layout().addRow("Signal:", self.signal_input)
         self.layout().addRow("Telegram:", self.telegram_input)
+        self.layout().addRow("Facebook:", self.facebook_input)  # New row
+        self.layout().addRow("LinkedIn:", self.linkedin_input)  # New row
         self.layout().addRow("Relationship:", self.relationship_input)
         self.layout().addRow("Notes:", self.notes_input)
 
@@ -271,8 +297,10 @@ class EntryDialog(QDialog):
             self.whatsapp_input.setText(self.entry[4])
             self.signal_input.setText(self.entry[5])
             self.telegram_input.setText(self.entry[6])
-            self.relationship_input.setText(self.entry[7])
-            self.notes_input.setText(self.entry[8])
+            self.facebook_input.setText(self.entry[7])  # New field
+            self.linkedin_input.setText(self.entry[8])  # New field
+            self.relationship_input.setText(self.entry[9])
+            self.notes_input.setText(self.entry[10])
 
         self.save_button = QPushButton("Save")
         self.save_button.clicked.connect(self.save_entry)
@@ -286,6 +314,8 @@ class EntryDialog(QDialog):
             self.whatsapp_input.text(),
             self.signal_input.text(),
             self.telegram_input.text(),
+            self.facebook_input.text(),  # New field
+            self.linkedin_input.text(),  # New field
             self.relationship_input.text(),
             self.notes_input.text()
         )
@@ -296,7 +326,6 @@ class EntryDialog(QDialog):
             db_ops.add_entry(self.conn, self.table_name, entry_data)
 
         self.accept()
-
 
 class CombineTablesDialog(QDialog):
     def __init__(self, conn, parent=None):
@@ -332,22 +361,13 @@ class CombineTablesDialog(QDialog):
         self.layout.addWidget(self.combine_button)
 
         self.results_table = QTableWidget()
-        self.results_table.setColumnCount(10)
-        self.results_table.setHorizontalHeaderLabels(["Name", "Phone", "Email", "WhatsApp", "Signal", "Telegram", "Relationship", "Notes", "Last Modified", "Source Table"])
+        self.results_table.setColumnCount(12)  # Adjusted for new columns
+        self.results_table.setHorizontalHeaderLabels(["Name", "Phone", "Email", "WhatsApp", "Signal", "Telegram", "Facebook", "LinkedIn", "Relationship", "Notes", "Last Modified", "Source Table"])
         self.results_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        # Set resize mode for each column
-        self.results_table.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
-        self.results_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)  # Name
-        self.results_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)  # Phone
-        self.results_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)  # Email
-        self.results_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)  # WhatsApp
-        self.results_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)  # Signal
-        self.results_table.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeToContents)  # Telegram
-        self.results_table.horizontalHeader().setSectionResizeMode(6, QHeaderView.ResizeToContents)  # Relationship
-        self.results_table.horizontalHeader().setSectionResizeMode(7, QHeaderView.Stretch)           # Notes
-        self.results_table.horizontalHeader().setSectionResizeMode(8, QHeaderView.ResizeToContents)  # Last Modified
-        self.results_table.horizontalHeader().setSectionResizeMode(9, QHeaderView.ResizeToContents)  # Source Table
+        # Set resize mode for each column to stretch
+        for i in range(self.results_table.columnCount()):
+            self.results_table.horizontalHeader().setSectionResizeMode(i, QHeaderView.Stretch)
 
         self.results_table.setWordWrap(True)
         self.results_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
@@ -393,17 +413,8 @@ class CombineTablesDialog(QDialog):
         for entry in combined_data:
             row_position = self.results_table.rowCount()
             self.results_table.insertRow(row_position)
-            # Skip the serial ID (entry[0]) and align data with headers
-            self.results_table.setItem(row_position, 0, QTableWidgetItem(str(entry[1])))  # Name
-            self.results_table.setItem(row_position, 1, QTableWidgetItem(str(entry[2])))  # Phone
-            self.results_table.setItem(row_position, 2, QTableWidgetItem(str(entry[3])))  # Email
-            self.results_table.setItem(row_position, 3, QTableWidgetItem(str(entry[4])))  # WhatsApp
-            self.results_table.setItem(row_position, 4, QTableWidgetItem(str(entry[5])))  # Signal
-            self.results_table.setItem(row_position, 5, QTableWidgetItem(str(entry[6])))  # Telegram
-            self.results_table.setItem(row_position, 6, QTableWidgetItem(str(entry[7])))  # Relationship
-            self.results_table.setItem(row_position, 7, QTableWidgetItem(str(entry[8])))  # Notes
-            self.results_table.setItem(row_position, 8, QTableWidgetItem(str(entry[10]))) # Last Modified
-            self.results_table.setItem(row_position, 9, QTableWidgetItem(str(entry[11]))) # Source Table
+            for i, value in enumerate(entry[1:]):  # Skip ID and align data with headers
+                self.results_table.setItem(row_position, i, QTableWidgetItem(str(value)))
 
 
 class SearchTablesDialog(QDialog):
@@ -444,31 +455,19 @@ class SearchTablesDialog(QDialog):
         self.layout.addWidget(self.search_button)
 
         self.results_table = QTableWidget()
-        self.results_table.setColumnCount(10)
-        self.results_table.setHorizontalHeaderLabels(["Name", "Phone", "Email", "WhatsApp", "Signal", "Telegram", "Relationship", "Notes", "Last Modified", "Source Table"])
+        self.results_table.setColumnCount(12)  # Adjusted for new columns
+        self.results_table.setHorizontalHeaderLabels(["Name", "Phone", "Email", "WhatsApp", "Signal", "Telegram", "Facebook", "LinkedIn", "Relationship", "Notes", "Last Modified", "Source Table"])
         self.results_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        # Set resize mode for each column
-        self.results_table.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
-        self.results_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)  # Name
-        self.results_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)  # Phone
-        self.results_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)  # Email
-        self.results_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)  # WhatsApp
-        self.results_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)  # Signal
-        self.results_table.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeToContents)  # Telegram
-        self.results_table.horizontalHeader().setSectionResizeMode(6, QHeaderView.ResizeToContents)  # Relationship
-        self.results_table.horizontalHeader().setSectionResizeMode(7, QHeaderView.Stretch)           # Notes
-        self.results_table.horizontalHeader().setSectionResizeMode(8, QHeaderView.ResizeToContents)  # Last Modified
-        self.results_table.horizontalHeader().setSectionResizeMode(9, QHeaderView.ResizeToContents)  # Source Table
+        # Set resize mode for each column to stretch
+        for i in range(self.results_table.columnCount()):
+            self.results_table.horizontalHeader().setSectionResizeMode(i, QHeaderView.Stretch)
 
         self.results_table.setWordWrap(True)
         self.results_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.results_table.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.results_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.layout.addWidget(self.results_table)
-
-
-
 
     def load_tables(self):
         self.tables_list.setRowCount(0)
@@ -508,17 +507,8 @@ class SearchTablesDialog(QDialog):
         for entry in search_results:
             row_position = self.results_table.rowCount()
             self.results_table.insertRow(row_position)
-            # Skip the serial ID (entry[0]) and align data with headers
-            self.results_table.setItem(row_position, 0, QTableWidgetItem(str(entry[1])))  # Name
-            self.results_table.setItem(row_position, 1, QTableWidgetItem(str(entry[2])))  # Phone
-            self.results_table.setItem(row_position, 2, QTableWidgetItem(str(entry[3])))  # Email
-            self.results_table.setItem(row_position, 3, QTableWidgetItem(str(entry[4])))  # WhatsApp
-            self.results_table.setItem(row_position, 4, QTableWidgetItem(str(entry[5])))  # Signal
-            self.results_table.setItem(row_position, 5, QTableWidgetItem(str(entry[6])))  # Telegram
-            self.results_table.setItem(row_position, 6, QTableWidgetItem(str(entry[7])))  # Relationship
-            self.results_table.setItem(row_position, 7, QTableWidgetItem(str(entry[8])))  # Notes
-            self.results_table.setItem(row_position, 8, QTableWidgetItem(str(entry[10]))) # Last Modified
-            self.results_table.setItem(row_position, 9, QTableWidgetItem(str(entry[11]))) # Source Table
+            for i, value in enumerate(entry[1:]):  # Skip ID and align data with headers
+                self.results_table.setItem(row_position, i, QTableWidgetItem(str(value)))
 
 
 

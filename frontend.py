@@ -2,6 +2,7 @@ import sys
 from PyQt5.QtWidgets import QComboBox, QHBoxLayout,QHeaderView,QSizePolicy, QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton,QGridLayout, QLineEdit, QLabel, QTableWidget, QTableWidgetItem, QCheckBox, QFormLayout, QMessageBox, QInputDialog,QScrollArea, QDialog
 from PyQt5.QtCore import Qt
 import backend as db_ops
+from PyQt5.QtGui import QIcon
 
 
 
@@ -14,6 +15,7 @@ class MainWindow(QMainWindow):
         self.setGeometry(100, 100, 800, 600)
         self.conn = db_ops.connect_to_database()
         db_ops.create_tables_metadata_table(self.conn)
+        self.setWindowIcon(QIcon('_internal/global_network.ico'))  # Set the window icon
 
         self.initUI()
 

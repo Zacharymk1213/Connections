@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QHeaderView,QSizePolicy, QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton,QGridLayout, QLineEdit, QLabel, QTableWidget, QTableWidgetItem, QCheckBox, QFormLayout, QMessageBox, QInputDialog,QScrollArea, QDialog
+from PyQt5.QtWidgets import QHBoxLayout,QHeaderView,QSizePolicy, QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton,QGridLayout, QLineEdit, QLabel, QTableWidget, QTableWidgetItem, QCheckBox, QFormLayout, QMessageBox, QInputDialog,QScrollArea, QDialog
 from PyQt5.QtCore import Qt
 import backend as db_ops
 
@@ -154,8 +154,8 @@ class TableDialog(QDialog):
         layout = QVBoxLayout(self.central_widget)
 
         self.entries_table = QTableWidget()
-        self.entries_table.setColumnCount(9)
-        self.entries_table.setHorizontalHeaderLabels(["Name", "Phone", "Email", "WhatsApp", "Signal", "Telegram", "Relationship", "Notes", "Actions"])
+        self.entries_table.setColumnCount(10)  # Adjusted for separate edit and delete columns
+        self.entries_table.setHorizontalHeaderLabels(["Name", "Phone", "Email", "WhatsApp", "Signal", "Telegram", "Relationship", "Notes", "Edit", "Delete"])
         self.entries_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # Set resize mode for each column
@@ -168,7 +168,8 @@ class TableDialog(QDialog):
         self.entries_table.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeToContents)  # Telegram
         self.entries_table.horizontalHeader().setSectionResizeMode(6, QHeaderView.ResizeToContents)  # Relationship
         self.entries_table.horizontalHeader().setSectionResizeMode(7, QHeaderView.Stretch)           # Notes
-        self.entries_table.horizontalHeader().setSectionResizeMode(8, QHeaderView.ResizeToContents)  # Actions
+        self.entries_table.horizontalHeader().setSectionResizeMode(8, QHeaderView.ResizeToContents)  # Edit
+        self.entries_table.horizontalHeader().setSectionResizeMode(9, QHeaderView.ResizeToContents)  # Delete
 
         self.entries_table.setWordWrap(True)
         self.entries_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
@@ -182,7 +183,6 @@ class TableDialog(QDialog):
 
         self.setLayout(layout)
 
-
     def load_entries(self):
         self.entries_table.setRowCount(0)
         entries = db_ops.fetch_entries(self.conn, self.table_name)
@@ -194,10 +194,31 @@ class TableDialog(QDialog):
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)  # Make item non-editable
                 self.entries_table.setItem(row_position, i, item)
 
+            # Add Edit button
             edit_button = QPushButton("Edit")
             edit_button.clicked.connect(lambda _, e=entry: self.edit_entry(e))
             self.entries_table.setCellWidget(row_position, 8, edit_button)
 
+            # Add Delete button
+            delete_button = QPushButton("Delete")
+            delete_button.clicked.connect(lambda _, e=entry: self.delete_entry(e))
+            self.entries_table.setCellWidget(row_position, 9, delete_button)
+
+    def delete_entry(self, entry):
+        reply = QMessageBox.question(
+            self,
+            'Delete Entry',
+            f"Are you sure you want to delete the entry '{entry[1]}'?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+
+        if reply == QMessageBox.Yes:
+            if db_ops.delete_entry(self.conn, self.table_name, entry[0]):
+                QMessageBox.information(self, "Success", f"Entry '{entry[1]}' deleted successfully.")
+                self.load_entries()
+            else:
+                QMessageBox.warning(self, "Error", f"Failed to delete entry '{entry[1]}'.")
 
     def add_entry(self):
         dialog = EntryDialog(self.conn, self.table_name, self)
@@ -205,22 +226,10 @@ class TableDialog(QDialog):
         self.load_entries()
 
     def edit_entry(self, entry):
-        row_position = self.entries_table.rowCount()
-        for i in range(self.entries_table.columnCount() - 1):  # Exclude the last column with the button
-            item = self.entries_table.item(row_position, i)
-            if item:
-                item.setFlags(item.flags() | Qt.ItemIsEditable)  # Make item editable
-
         dialog = EntryDialog(self.conn, self.table_name, self, entry)
         dialog.exec_()
-
-        # After editing, make the items non-editable again
-        for i in range(self.entries_table.columnCount() - 1):
-            item = self.entries_table.item(row_position, i)
-            if item:
-                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
-
         self.load_entries()
+
 
 
 class EntryDialog(QDialog):

@@ -206,6 +206,7 @@ def combine_tables(conn, table_names):
         print(f'Error combining tables: {e}')
         return []
 
+
 # Search tables
 def search_tables(conn, search_term, table_names, search_type='name'):
     if not table_names:
@@ -230,6 +231,7 @@ def search_tables(conn, search_term, table_names, search_type='name'):
             print(f'Error searching table {table_name}: {e}')
 
     return combined_results
+
 
 
 def get_table_creation_date(conn, table_name):

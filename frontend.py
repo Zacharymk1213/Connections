@@ -4,35 +4,8 @@ from PyQt5.QtCore import Qt
 import backend as db_ops
 
 
-def wrap_text_with_hyphen(text, max_length):
-    words = text.split()
-    wrapped_lines = []
-    current_line = ""
 
-    for word in words:
-        if len(current_line) + len(word) + 1 > max_length:  # +1 for the space or hyphen
-            if len(word) > max_length:
-                # Split the word with hyphens if it's longer than max_length
-                while len(word) > max_length:
-                    wrapped_lines.append(word[:max_length-1] + "-")
-                    word = word[max_length-1:]
-            wrapped_lines.append(current_line)
-            current_line = word
-        else:
-            if current_line:
-                current_line += " "
-            current_line += word
 
-    if current_line:
-        wrapped_lines.append(current_line)
-
-    return "\n".join(wrapped_lines)
-
-# Example usage
-text = "This is a verylongwordthatneedstobebroken"
-max_length = 10
-wrapped_text = wrap_text_with_hyphen(text, max_length)
-print(wrapped_text)
 
 class MainWindow(QMainWindow):
     def __init__(self):

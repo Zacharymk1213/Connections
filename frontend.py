@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton,QGridLayout, QLineEdit, QLabel, QTableWidget, QTableWidgetItem, QCheckBox, QFormLayout, QMessageBox, QInputDialog,QScrollArea, QDialog
+from PyQt5.QtWidgets import QHeaderView,QSizePolicy, QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton,QGridLayout, QLineEdit, QLabel, QTableWidget, QTableWidgetItem, QCheckBox, QFormLayout, QMessageBox, QInputDialog,QScrollArea, QDialog
 from PyQt5.QtCore import Qt
 import backend as db_ops
 
@@ -146,7 +146,7 @@ class TableDialog(QDialog):
         self.conn = conn
         self.table_name = table_name
         self.setWindowTitle(f"Table: {table_name}")
-        self.setGeometry(150, 150, 800, 600)
+        self.setGeometry(150, 150, 1000, 600)
         self.initUI()
 
     def initUI(self):
@@ -156,6 +156,9 @@ class TableDialog(QDialog):
         self.entries_table = QTableWidget()
         self.entries_table.setColumnCount(9)
         self.entries_table.setHorizontalHeaderLabels(["Name", "Phone", "Email", "WhatsApp", "Signal", "Telegram", "Relationship", "Notes", "Actions"])
+        self.entries_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.entries_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.entries_table.setWordWrap(True)  # Enable word wrapping
         self.layout().addWidget(self.entries_table)
 
         self.load_entries()
@@ -163,6 +166,7 @@ class TableDialog(QDialog):
         self.add_entry_button = QPushButton("Add Entry")
         self.add_entry_button.clicked.connect(self.add_entry)
         self.layout().addWidget(self.add_entry_button)
+
     def load_entries(self):
         self.entries_table.setRowCount(0)
         entries = db_ops.fetch_entries(self.conn, self.table_name)
@@ -267,12 +271,14 @@ class EntryDialog(QDialog):
             db_ops.add_entry(self.conn, self.table_name, entry_data)
 
         self.accept()
+
+
 class CombineTablesDialog(QDialog):
     def __init__(self, conn, parent=None):
         super().__init__(parent)
         self.conn = conn
         self.setWindowTitle("Combine Tables")
-        self.setGeometry(200, 200, 600, 400)
+        self.setGeometry(200, 200, 1000, 600)
         self.initUI()
 
     def initUI(self):
@@ -281,6 +287,7 @@ class CombineTablesDialog(QDialog):
         self.tables_list = QTableWidget()
         self.tables_list.setColumnCount(2)
         self.tables_list.setHorizontalHeaderLabels(["Select", "Table Name"])
+        self.tables_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.layout.addWidget(self.tables_list)
 
         self.load_tables()
@@ -298,9 +305,13 @@ class CombineTablesDialog(QDialog):
         self.layout.addWidget(self.combine_button)
 
         self.results_table = QTableWidget()
-        self.results_table.setColumnCount(10)  # Adjust based on your data structure
+        self.results_table.setColumnCount(10)
         self.results_table.setHorizontalHeaderLabels(["Name", "Phone", "Email", "WhatsApp", "Signal", "Telegram", "Relationship", "Notes", "Last Modified", "Source Table"])
+        self.results_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.results_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.results_table.setWordWrap(True)  # Enable word wrapping
         self.layout.addWidget(self.results_table)
+
 
     def load_tables(self):
         self.tables_list.setRowCount(0)
@@ -339,8 +350,18 @@ class CombineTablesDialog(QDialog):
         for entry in combined_data:
             row_position = self.results_table.rowCount()
             self.results_table.insertRow(row_position)
-            for i, value in enumerate(entry):
-                self.results_table.setItem(row_position, i, QTableWidgetItem(str(value)))
+            # Skip the serial ID (entry[0]) and align data with headers
+            self.results_table.setItem(row_position, 0, QTableWidgetItem(str(entry[1])))  # Name
+            self.results_table.setItem(row_position, 1, QTableWidgetItem(str(entry[2])))  # Phone
+            self.results_table.setItem(row_position, 2, QTableWidgetItem(str(entry[3])))  # Email
+            self.results_table.setItem(row_position, 3, QTableWidgetItem(str(entry[4])))  # WhatsApp
+            self.results_table.setItem(row_position, 4, QTableWidgetItem(str(entry[5])))  # Signal
+            self.results_table.setItem(row_position, 5, QTableWidgetItem(str(entry[6])))  # Telegram
+            self.results_table.setItem(row_position, 6, QTableWidgetItem(str(entry[7])))  # Relationship
+            self.results_table.setItem(row_position, 7, QTableWidgetItem(str(entry[8])))  # Notes
+            self.results_table.setItem(row_position, 8, QTableWidgetItem(str(entry[10]))) # Last Modified
+            self.results_table.setItem(row_position, 9, QTableWidgetItem(str(entry[11]))) # Source Table
+
 
 
 class SearchTablesDialog(QDialog):
@@ -348,7 +369,7 @@ class SearchTablesDialog(QDialog):
         super().__init__(parent)
         self.conn = conn
         self.setWindowTitle("Search Tables")
-        self.setGeometry(200, 200, 600, 400)
+        self.setGeometry(200, 200, 1000, 600)
         self.initUI()
 
     def initUI(self):
@@ -361,6 +382,7 @@ class SearchTablesDialog(QDialog):
         self.tables_list = QTableWidget()
         self.tables_list.setColumnCount(2)
         self.tables_list.setHorizontalHeaderLabels(["Select", "Table Name"])
+        self.tables_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.layout.addWidget(self.tables_list)
 
         self.load_tables()
@@ -378,9 +400,13 @@ class SearchTablesDialog(QDialog):
         self.layout.addWidget(self.search_button)
 
         self.results_table = QTableWidget()
-        self.results_table.setColumnCount(10)  # Adjust based on your data structure
+        self.results_table.setColumnCount(10)
         self.results_table.setHorizontalHeaderLabels(["Name", "Phone", "Email", "WhatsApp", "Signal", "Telegram", "Relationship", "Notes", "Last Modified", "Source Table"])
+        self.results_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.results_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.results_table.setWordWrap(True)  # Enable word wrapping
         self.layout.addWidget(self.results_table)
+
 
     def load_tables(self):
         self.tables_list.setRowCount(0)
@@ -420,8 +446,19 @@ class SearchTablesDialog(QDialog):
         for entry in search_results:
             row_position = self.results_table.rowCount()
             self.results_table.insertRow(row_position)
-            for i, value in enumerate(entry):
-                self.results_table.setItem(row_position, i, QTableWidgetItem(str(value)))
+            # Skip the serial ID (entry[0]) and align data with headers
+            self.results_table.setItem(row_position, 0, QTableWidgetItem(str(entry[1])))  # Name
+            self.results_table.setItem(row_position, 1, QTableWidgetItem(str(entry[2])))  # Phone
+            self.results_table.setItem(row_position, 2, QTableWidgetItem(str(entry[3])))  # Email
+            self.results_table.setItem(row_position, 3, QTableWidgetItem(str(entry[4])))  # WhatsApp
+            self.results_table.setItem(row_position, 4, QTableWidgetItem(str(entry[5])))  # Signal
+            self.results_table.setItem(row_position, 5, QTableWidgetItem(str(entry[6])))  # Telegram
+            self.results_table.setItem(row_position, 6, QTableWidgetItem(str(entry[7])))  # Relationship
+            self.results_table.setItem(row_position, 7, QTableWidgetItem(str(entry[8])))  # Notes
+            self.results_table.setItem(row_position, 8, QTableWidgetItem(str(entry[10]))) # Last Modified
+            self.results_table.setItem(row_position, 9, QTableWidgetItem(str(entry[11]))) # Source Table
+
+
 
 
 if __name__ == '__main__':

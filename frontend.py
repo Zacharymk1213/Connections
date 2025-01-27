@@ -394,7 +394,9 @@ class CombineTablesDialog(QDialog):
                     continue
                 # Adjust the index for display since we're skipping one column
                 display_index = i if i < 10 else i - 1
-                self.results_table.setItem(row_position, display_index, QTableWidgetItem(str(value)))
+                item = QTableWidgetItem(str(value))
+                item.setFlags(item.flags() & ~Qt.ItemIsEditable)  # Make item non-editable
+                self.results_table.setItem(row_position, display_index, item)
 
 
 
@@ -493,11 +495,21 @@ class SearchTablesDialog(QDialog):
 
     def display_search_results(self, search_results):
         self.results_table.setRowCount(0)
+
         for entry in search_results:
             row_position = self.results_table.rowCount()
             self.results_table.insertRow(row_position)
-            for i, value in enumerate(entry[1:]):  # Skip ID and align data with headers
-                self.results_table.setItem(row_position, i, QTableWidgetItem(str(value)))
+
+            # Skip the ID (index 0) and created_at (index 11) columns
+            for i, value in enumerate(entry[1:], start=0):  # Start from index 1 to skip ID
+                if i == 10:  # Skip the created_at column (index 11 in the original entry)
+                    continue
+                # Adjust the index for display since we're skipping one column
+                display_index = i if i < 10 else i - 1
+                item = QTableWidgetItem(str(value))
+                item.setFlags(item.flags() & ~Qt.ItemIsEditable)  # Make item non-editable
+                self.results_table.setItem(row_position, display_index, item)
+
 
 
 

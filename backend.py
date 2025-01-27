@@ -205,9 +205,7 @@ def combine_tables(conn, table_names):
         combined_data = cursor.fetchall()
         combined_data.sort(key=lambda x: x[1])  # Assuming the second column is 'name'
         # Output the result to the console
-        print("Combined Tables Result:")
-        for row in combined_data:
-            print(row)
+
 
         return combined_data
     except sqlite3.Error as e:
@@ -239,9 +237,7 @@ def search_tables(conn, search_term, table_names, search_type='name'):
             combined_results.extend(cursor.fetchall())
         except sqlite3.Error as e:
             print(f'Error searching table {table_name}: {e}')
-    print("Search Tables Result:")
-    for row in combined_results:
-        print(row)
+
 
     return combined_results
 

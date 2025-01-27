@@ -207,20 +207,30 @@ def combine_tables(conn, table_names):
         return []
 
 # Search tables
-def search_tables(conn, search_term, table_names):
+def search_tables(conn, search_term, table_names, search_type='name'):
     if not table_names:
         print('No tables selected for search.')
         return []
+
     valid_tables = [name for name in table_names if is_valid_table_name(name)]
     combined_results = []
+
     for table_name in valid_tables:
-        query = f"SELECT *, '{table_name}' AS source_table FROM {table_name} WHERE name LIKE ?"
+        if search_type == 'name':
+            query = f"SELECT *, '{table_name}' AS source_table FROM {table_name} WHERE name LIKE ?"
+        elif search_type == 'relationship':
+            query = f"SELECT *, '{table_name}' AS source_table FROM {table_name} WHERE relationship LIKE ?"
+        else:
+            continue
+
         try:
             cursor = conn.execute(query, (f'%{search_term}%',))
             combined_results.extend(cursor.fetchall())
         except sqlite3.Error as e:
             print(f'Error searching table {table_name}: {e}')
+
     return combined_results
+
 
 def get_table_creation_date(conn, table_name):
     try:

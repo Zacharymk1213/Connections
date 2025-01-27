@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QHBoxLayout,QHeaderView,QSizePolicy, QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton,QGridLayout, QLineEdit, QLabel, QTableWidget, QTableWidgetItem, QCheckBox, QFormLayout, QMessageBox, QInputDialog,QScrollArea, QDialog
+from PyQt5.QtWidgets import QComboBox, QHBoxLayout,QHeaderView,QSizePolicy, QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton,QGridLayout, QLineEdit, QLabel, QTableWidget, QTableWidgetItem, QCheckBox, QFormLayout, QMessageBox, QInputDialog,QScrollArea, QDialog
 from PyQt5.QtCore import Qt
 import backend as db_ops
 
@@ -37,7 +37,7 @@ print(wrapped_text)
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Database Manager")
+        self.setWindowTitle("Connections")
         self.setGeometry(100, 100, 800, 600)
         self.conn = db_ops.connect_to_database()
         db_ops.create_tables_metadata_table(self.conn)
@@ -432,6 +432,11 @@ class SearchTablesDialog(QDialog):
         self.search_input.setPlaceholderText("Enter search term")
         self.layout.addWidget(self.search_input)
 
+        # Add a combo box for selecting search type
+        self.search_type_combo = QComboBox()
+        self.search_type_combo.addItems(["Name", "Relationship"])
+        self.layout.addWidget(self.search_type_combo)
+
         self.tables_list = QTableWidget()
         self.tables_list.setColumnCount(2)
         self.tables_list.setHorizontalHeaderLabels(["Select", "Table Name"])
@@ -499,7 +504,10 @@ class SearchTablesDialog(QDialog):
                 table_name = self.tables_list.item(row, 1).text()
                 selected_tables.append(table_name)
 
-        search_results = db_ops.search_tables(self.conn, search_term, selected_tables)
+        # Get the selected search type
+        search_type = 'name' if self.search_type_combo.currentText() == "Name" else 'relationship'
+
+        search_results = db_ops.search_tables(self.conn, search_term, selected_tables, search_type)
         self.display_search_results(search_results)
 
     def display_search_results(self, search_results):

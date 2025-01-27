@@ -424,6 +424,9 @@ class SearchTablesDialog(QDialog):
     def initUI(self):
         self.layout = QVBoxLayout(self)
 
+        self.row_count_label = QLabel("Number of Entries returned: 0")
+        self.layout.addWidget(self.row_count_label)
+
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Enter search term")
         self.layout.addWidget(self.search_input)
@@ -509,6 +512,10 @@ class SearchTablesDialog(QDialog):
         search_results = db_ops.search_tables(self.conn, search_term, selected_tables, search_type)
         self.display_search_results(search_results)
 
+        # Update the row count label
+        row_count = len(search_results)
+        self.row_count_label.setText(f"Number of Entries returned: {row_count}")
+
     def display_search_results(self, search_results):
         self.results_table.setRowCount(0)
 
@@ -525,8 +532,6 @@ class SearchTablesDialog(QDialog):
                 item = QTableWidgetItem(str(value))
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)  # Make item non-editable
                 self.results_table.setItem(row_position, display_index, item)
-
-
 
 
 if __name__ == '__main__':

@@ -136,7 +136,7 @@ The application stores its data inside the user's application data directory.
 ### Windows
 
 ```
-%LOCALAPPDATA%/connections-app/
+%LOCALAPPDATA%\connections-app\
 ```
 
 ### Linux
@@ -160,7 +160,7 @@ Stored data includes:
 Install dependencies:
 
 ```bash
-pip install PyQt5
+pip install requirements.txt
 ```
 
 ---
